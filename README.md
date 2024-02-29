@@ -1,5 +1,5 @@
 # Representing 3D sparse map points and lines for camera relocalization
-### [Project Page](https://thpjp.github.io/pl2map/) | [Paper](https://thpjp.github.io/pl2map/)
+### [Project Page](https://thpjp.github.io/pl2map/) | [Paper](https://arxiv.org/abs/2402.18011)
 <br/>
 
 > Representing 3D sparse map points and lines for camera relocalization                                                                                                                                                
