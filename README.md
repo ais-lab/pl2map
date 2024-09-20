@@ -16,21 +16,21 @@ git submodule update --init --recursive
 python -m pip install torch==1.12.0 torchvision==0.13.0 
 python -m pip install -r requirements.txt
 ```
-## Datasets
+## Supported datasets
 - [Microsoft 7scenes](https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/)
 - [Cambridge Landmarks](https://www.repository.cam.ac.uk/handle/1810/251342/)
 - [Indoor-6](https://github.com/microsoft/SceneLandmarkLocalization)
 
-Please run the provided scripts to prepare and download the data which has been undistorted by running:
-- 7scenes:
+Please run the provided scripts to prepare and download the data which has been preprocessed by running:
+7scenes
 ```
 ./prepare_scripts/seven_scenes.sh
 ```
-- Cambridge Landmarks
+Cambridge Landmarks
 ```
 ./prepare_scripts/cambridge.sh 
 ```
-- Indoor-6
+Indoor-6
 ```
 ./prepare_scripts/indoor6.sh
 ```
@@ -50,7 +50,7 @@ python runners/eval.py --dataset Cambridge --scene KingsCollege -expv pl2map
 python runners/train.py --dataset Cambridge --scene KingsCollege -expv pl2map_test
 ```
 
-## Detectors
+## Supported detectors
 ### Lines
 - [LSD](https://github.com/iago-suarez/pytlsd)
 - [DeepLSD](https://github.com/cvg/DeepLSD)
@@ -64,7 +64,7 @@ If you use this code in your project, please consider citing the following paper
 @article{bui2024representing,
   title={Representing 3D sparse map points and lines for camera relocalization},
   author={Bui, Bach-Thuan and Bui, Huy-Hoang and Tran, Dinh-Tuan and Lee, Joo-Ho},
-  journal={arXiv preprint arXiv:2402.18011},
+  journal={2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
   year={2024}
 }
 ```
