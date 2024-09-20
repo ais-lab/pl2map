@@ -1,0 +1,82 @@
+line2d:
+  max_num_2d_segs: 3000
+  do_merge_lines: False # Not implemented
+  visualize: False
+  save_l3dpp: False
+  detector:
+    name: "deeplsd" # ["lsd", "sold2", "deeplsd"] - for loading labeled 3D model
+    name_test_model: "deeplsd" # ["lsd", "sold2", "deeplsd"] - for testing (not depending on pre-3D model)
+  preprocessing:
+    grayscale: True
+
+point2d:
+  detector: 
+    name: "superpoint" # ["superpoint", "sift"]
+    configs:
+      force_num_keypoints: False
+      nms_radius: 3
+      max_keypoints: 2048
+    preprocessing:
+      grayscale: True
+      resize_max: 1024
+      resize_force: True
+      interpolation: 'cv2_area'  # pil_linear is more accurate but slower
+  matcher: "NN-superpoint" # ["superglue", "gluestick"] # not implemented (for unlabeled learning)
+
+regressor: 
+  name: pl2map # pl2map_only_point or pl2map_sep
+  use_line: True
+  use_point: True
+  n_line_keypoints: 10 # number of keypoints used to represent a line
+
+train: # train configs
+  batch_size: 1
+  num_iters: 2500000 # number training iterations
+  loader_shuffle: True
+  loader_num_workers: 8
+  log_interval: 500 # log every n batches (visdom graph)
+  loss:
+    reprojection:
+      apply: False
+      start_apply: 0.05 # start applying reprojection loss
+      type: "dyntanh" # ["l1", "l1+sqrt", "l1+log", "tanh", "dyntanh"]
+      soft_clamp: 100
+      soft_clamp_min: 1
+      circle_schedule: True # 'circle'(weight increasing) or 'linear' (weight decreasing)
+  augmentation:
+    apply: True
+    on_rate: 0.5 # probability of applying augmentation
+    brightness: 0.15
+    contrast: 0.1
+    homography:
+      apply: True  # if apply, augmented poses will be incorrect
+      perspective: True
+      scaling: True 
+      rotation: True
+      translation: True
+      n_scales: 5
+      n_angles: 25
+      scaling_amplitude: 0.1
+      perspective_amplitude_x: 0.1
+      perspective_amplitude_y: 0.1
+      patch_ratio: 0.8 # ratio of the patch to the image
+      max_angle: 45 # in degrees
+      allow_artifacts: False
+    dsacstar: # apply DSAC*-like augmentation
+      apply: False # homography augmentation must be disabled
+      aug_rotation: 30 # in degrees
+      aug_scale_min: 0.666666666 # 2/3
+      aug_scale_max: 1.5  # 3/2
+
+
+optimizer:
+  method: adam
+  base_lr: 0.0002 # base/start learning rate
+  weight_decay: 0.0
+  lr_decay: 0.5 # decay rate
+  num_lr_decay_step: 7 # decay every n epochs, 7 
+
+localization:
+  ransac: 
+    max_reproj_error: 12.0 
+    max_epipolar_error: 10.0

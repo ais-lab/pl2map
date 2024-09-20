@@ -1,0 +1,55 @@
+import os
+import numpy as np
+import torch
+from third_party.DeepLSD.deeplsd.models.deeplsd_inference import DeepLSD
+from ..linebase_detector import LineBaseDetector, BaseDetectorOptions
+
+class DeepLSDDetector(LineBaseDetector):
+    def __init__(self, options = BaseDetectorOptions()):
+        super(DeepLSDDetector, self).__init__(options)
+
+        conf = {
+            'detect_lines': True,
+            'line_detection_params': {
+                'merge': False,
+                'grad_nfa': True,
+                'filtering': 'normal',
+                'grad_thresh': 3,
+            },
+        }
+        self.device = f'cuda:{self.cudaid}' if torch.cuda.is_available() else 'cpu'
+        if self.weight_path is None:
+            ckpt = os.path.join(os.path.dirname(__file__), 'deeplsd_md.tar')
+        else:
+            ckpt = os.path.join(self.weight_path, "line2d", "DeepLSD", 'deeplsd_md.tar')
+        if not os.path.isfile(ckpt):
+            self.download_model(ckpt)
+        ckpt = torch.load(ckpt, map_location='cpu')
+        print('Loaded DeepLSD model')
+        self.net = DeepLSD(conf).eval()
+        self.net.load_state_dict(ckpt['model'])
+        self.net = self.net.to(self.device)
+
+    def download_model(self, path):
+        import subprocess
+        if not os.path.exists(os.path.dirname(path)):
+            os.makedirs(os.path.dirname(path))
+        link = "https://www.polybox.ethz.ch/index.php/s/XVb30sUyuJttFys/download"
+        cmd = ["wget", link, "-O", path]
+        print("Downloading DeepLSD model...")
+        subprocess.run(cmd, check=True)
+
+    def get_module_name(self):
+        return "deeplsd"
+
+    def detect(self, image):
+        
+        with torch.no_grad():
+            lines = self.net({'image': image})['lines'][0]
+
+        # Use the line length as score
+        lines = np.concatenate([
+            lines.reshape(-1, 4),
+            np.linalg.norm(lines[:, 0] - lines[:, 1], axis=1, keepdims=True)],
+                               axis=1)
+        return lines

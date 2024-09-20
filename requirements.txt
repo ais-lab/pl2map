@@ -1,0 +1,16 @@
+pathlib
+open3d
+omegaconf
+h5py
+numpy
+scipy
+matplotlib
+tqdm
+pyyaml
+opencv-python
+pathlib
+poselib
+visdom
+
+./third_party/pytlsd
+./third_party/DeepLSD
