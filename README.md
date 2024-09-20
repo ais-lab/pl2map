@@ -22,6 +22,7 @@ python -m pip install -r requirements.txt
 - [Indoor-6](https://github.com/microsoft/SceneLandmarkLocalization)
 
 Please run the provided scripts to prepare and download the data which has been preprocessed by running:
+
 7scenes
 ```
 ./prepare_scripts/seven_scenes.sh
