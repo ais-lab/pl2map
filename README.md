@@ -40,7 +40,7 @@ Please download the pre-trained models by running:
 ```
 ./prepare_scripts/download_pre_trained_models.sh
 ```
-For example, evaluate KingsCollege scene:
+For example, to evaluate KingsCollege scene:
 ```
 python runners/eval.py --dataset Cambridge --scene KingsCollege -expv pl2map
 ```
