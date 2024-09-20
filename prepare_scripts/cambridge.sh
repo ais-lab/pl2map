@@ -1,4 +1,4 @@
-# Description: Prepare the directory structure for the seven scene dataset
+# Description: Prepare the directory structure for the Cambridge dataset
 
 if [ ! -d "train_test_datasets" ]; then
   mkdir train_test_datasets
