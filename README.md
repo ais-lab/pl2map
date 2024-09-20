@@ -9,6 +9,7 @@
 ![demo_vid](assets/demo.gif)
 
 ## Installation
+Python 3.9 + required packages
 ```
 git submodule update --init --recursive
 
