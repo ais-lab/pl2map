@@ -4,7 +4,7 @@ import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.pipeline import Pipeline
 from datasets.dataloader import Collection_Loader
-from models.util_learner import CriterionPoint, CriterionPointLine, Optimizer
+from models.util_learner import CriterionPointLine, Optimizer
 from tqdm import tqdm
 torch.manual_seed(0)
 

@@ -16,3 +16,60 @@ git submodule update --init --recursive
 python -m pip install torch==1.12.0 torchvision==0.13.0 
 python -m pip install -r requirements.txt
 ```
+## Datasets
+- [Microsoft 7scenes](https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/)
+- [Cambridge Landmarks](https://www.repository.cam.ac.uk/handle/1810/251342/)
+- [Indoor-6](https://github.com/microsoft/SceneLandmarkLocalization)
+
+Please run the provided scripts to prepare and download the data which has been undistorted by running:
+- 7scenes:
+```
+./prepare_scripts/seven_scenes.sh
+```
+- Cambridge Landmarks
+```
+./prepare_scripts/cambridge.sh 
+```
+- Indoor-6
+```
+./prepare_scripts/indoor6.sh
+```
+
+## Evaluation with pre-trained models
+Please download the pre-trained models by running:
+```
+./prepare_scripts/download_pre_trained_models.sh
+```
+For example, evaluate KingsCollege scene:
+```
+python runners/eval.py --dataset Cambridge --scene KingsCollege -expv pl2map
+```
+
+## Training
+```
+python runners/train.py --dataset Cambridge --scene KingsCollege -expv pl2map_test
+```
+
+## Detectors
+### Lines
+- [LSD](https://github.com/iago-suarez/pytlsd)
+- [DeepLSD](https://github.com/cvg/DeepLSD)
+### Points
+- [Superpoint](https://github.com/rpautrat/SuperPoint)
+
+
+## Citation
+If you use this code in your project, please consider citing the following paper:
+```bibtex
+@article{bui2024representing,
+  title={Representing 3D sparse map points and lines for camera relocalization},
+  author={Bui, Bach-Thuan and Bui, Huy-Hoang and Tran, Dinh-Tuan and Lee, Joo-Ho},
+  journal={arXiv preprint arXiv:2402.18011},
+  year={2024}
+}
+```
+
+## Acknowledgement
+This code is built based on [Limap](https://github.com/cvg/limap). We thank the authors for their useful source code.
+
+

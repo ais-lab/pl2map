@@ -18,10 +18,7 @@ class Collection_Loader(Dataset):
             self.image_list = self.DataCol.test_imgs
         else:
             raise ValueError("Error! Mode {0} not supported.".format(mode))
-        # sort image_list
-        # self.image_list = sorted(self.image_list)
-        # # create new image_list with uniform sample of only 30 images 
-        # self.image_list = self.image_list[::int(len(self.image_list)/100)]
+
     def __len__(self):
         return len(self.image_list)
 

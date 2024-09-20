@@ -52,40 +52,6 @@ class CriterionPointLine(nn.Module):
         points_proj_loss = self.zero if (isinstance(points_proj_loss, int) or isinstance(points_proj_loss, float)) else points_proj_loss
         lines_proj_loss = self.zero if (isinstance(lines_proj_loss, int) or isinstance(lines_proj_loss, float)) else lines_proj_loss
         return total_loss, loss_points, uncer_loss_points, loss_lines, uncer_loss_lines, points_proj_loss, lines_proj_loss
-
-class CriterionPoint(nn.Module):
-    '''
-    # original implementation from https://arxiv.org/abs/2307.15250
-    Criterion for point only'''
-    def __init__(self, rpj_cfg, total_iterations=2000000):
-        super(CriterionPoint, self).__init__()
-        self.rpj_cfg = rpj_cfg
-        self.reprojection_loss = ReproLoss(total_iterations, self.rpj_cfg.soft_clamp, 
-                                            self.rpj_cfg.soft_clamp_min, self.rpj_cfg.type, 
-                                            self.rpj_cfg.circle_schedule)
-        self.zero = fakezero()
-    def forward(self, pred, target, iteration=2000000):
-        batch_size, _, _ = pred['points3D'].shape
-        validPoints = target["validPoints"]
-        # get losses for points 
-        square_errors_points = torch.norm((pred['points3D'][:,:3,:] - target["points3D"]), dim = 1)
-        loss_points = torch.sum(validPoints*square_errors_points)/batch_size
-        uncer_loss_points = torch.sum(torch.norm(validPoints - 1/(1+100*torch.abs(pred['points3D'][:,3,:])), dim = 1))/batch_size
-        
-        # get projection losses for points
-        points_proj_loss = 0
-        
-        if self.rpj_cfg.apply:
-            # get projection losses for points
-            for i in range(batch_size): # default batch_size = 1
-                prp_error, prp= project_loss_points(pred['keypoints'][i,:,:], pred['points3D'][i,:3,:], 
-                                    target['pose'][i,:], target['camera'][i,:], validPoints[i,:])
-                points_proj_loss += self.reprojection_loss.compute_point(prp_error, prp, iteration, validPoints[i,:])
-            points_proj_loss = points_proj_loss / batch_size
-        
-        total_loss = loss_points + uncer_loss_points + points_proj_loss
-        points_proj_loss = self.zero if (isinstance(points_proj_loss, int) or isinstance(points_proj_loss, float)) else points_proj_loss
-        return total_loss, loss_points, uncer_loss_points, self.zero, self.zero, points_proj_loss, self.zero
     
 
 class fakezero(object):

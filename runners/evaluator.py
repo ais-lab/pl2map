@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.pipeline import Pipeline
 from util.help_evaluation import Vis_Infor, pose_evaluator
 from datasets.dataloader import Collection_Loader
-from models.util_learner import CriterionPoint, CriterionPointLine
+from models.util_learner import CriterionPointLine
 from trainer import step_fwd, ShowLosses
 from util.pose_estimator import Pose_Estimator # require limap library
 from util.io import SAVING_MAP
@@ -31,14 +31,12 @@ class Evaluator():
         eval_cfg = eval_cfg if cfg.regressor.name == 'pl2map' \
               else force_onlypoint_cfg(eval_cfg)
         self.eval_cfg = OmegaConf.merge(OmegaConf.create(self.default_cfg), eval_cfg)
-        print(f"[INFOR] Model: {cfg.regressor.name}")
-        print("[INFOR] Evaluation Config: ", self.eval_cfg)
+        print(f"[INFO] Model: {cfg.regressor.name}")
+        print("[INFO] Evaluation Config: ", self.eval_cfg)
         
         if not self.eval_cfg.exist_results:
             self.pipeline = Pipeline(cfg)
-            self.criterion = CriterionPointLine(self.cfg.train.loss.reprojection, cfg.train.num_iters) \
-                  if cfg.regressor.name == 'pl2map' else CriterionPoint(self.cfg.train.loss.reprojection,
-                                                                        cfg.train.num_iters)
+            self.criterion = CriterionPointLine(self.cfg.train.loss.reprojection, cfg.train.num_iters) 
             self.device = torch.device(f'cuda:{args.cudaid}' \
                                        if torch.cuda.is_available() else 'cpu')
             self.save_path = None
@@ -48,7 +46,7 @@ class Evaluator():
             # dataloader
             if self.eval_cfg.eval_train: self.train_collection = Collection_Loader(args, cfg, mode="traintest")
             self.eval_collection = Collection_Loader(args, cfg, mode="test")
-            print("[INFOR] Loaded data collection")
+            print("[INFO] Loaded data collection")
             if self.eval_cfg.eval_train: self.train_loader = torch.utils.data.DataLoader(self.train_collection, batch_size=1,
                                                             shuffle=True)
             self.eval_loader = torch.utils.data.DataLoader(self.eval_collection, batch_size=1,
@@ -62,15 +60,15 @@ class Evaluator():
             self.pose_estimator = Pose_Estimator(self.cfg.localization, self.eval_cfg, 
                                                 self.args.outputs)
         else:
-            print("[INFOR] Skip running model, then use the existing results in the outputs folder")
+            print("[INFO] Skip running model, then use the existing results in the outputs folder")
 
     def eval(self):
         if not self.eval_cfg.exist_results:
             epoch = self.pipeline.load_checkpoint(self.args.outputs, self.exp_name)
             self.pipeline.eval()
-            print("[INFOR] Start evaluating ...")
+            print("[INFO] Start evaluating ...")
             if self.eval_cfg.eval_train:
-                print("[INFOR] Evaluating train_loader ...")
+                print("[INFO] Evaluating train_loader ...")
                 for _, (data, target) in enumerate(tqdm(self.train_loader)):
                     loss, output = step_fwd(self.pipeline, self.device, data,target,
                                              iteration=self.cfg.train.num_iters, 
@@ -82,7 +80,7 @@ class Evaluator():
                 self.vis_infor_train.vis()
             if self.eval_cfg.eval_test:
                 i = 0
-                print("[INFOR] Evaluating test_loader ...")
+                print("[INFO] Evaluating test_loader ...")
                 for _, (data, target) in enumerate(tqdm(self.eval_loader)):
                     _, output = step_fwd(self.pipeline, self.device, data, 
                                         target, train=False)
@@ -94,9 +92,9 @@ class Evaluator():
                     # if i > 20: break
                 self.vis_infor_test.vis()
         else:
-            print("[INFOR] Skip evaluating and use the existing results")
+            print("[INFO] Skip evaluating and use the existing results")
         pose_evaluator(self.eval_cfg, self.args.outputs)
-        print("[INFOR] DONE evaluation")
+        print("[INFO] DONE evaluation")
 
 def force_onlypoint_cfg(cfg):
     '''

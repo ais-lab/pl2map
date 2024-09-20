@@ -1,17 +1,14 @@
 datasets/gt_3Dmodels/
 datasets/imgs_datasets/
-datasets/__pycache__/
-detectors/line2d/__pycache__/
-detectors/line2d/DeepLSD/__pycache__/
-detectors/line2d/LSD/__pycache__/
-detectors/point2d/__pycache__/
-detectors/point2d/SuperPoint/__pycache__/
 detectors/point2d/SuperPoint/weights/
-util/__pycache__/
 visualization/
 visualization_all/
 logs/
+pre_train_logs/
 experiments/
+__pycache__/
+train_test_datasets/
+train_test_datasets_origin/
 
 *.npy
 *.png

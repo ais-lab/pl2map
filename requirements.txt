@@ -11,6 +11,9 @@ opencv-python
 pathlib
 poselib
 visdom
+scikit-image
+numpy==1.26.3
+gdown
 
 ./third_party/pytlsd
 ./third_party/DeepLSD

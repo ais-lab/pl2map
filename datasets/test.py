@@ -18,7 +18,7 @@ def parse_config():
     arg_parser.add_argument('--use_depth', type=int, default=0, choices=[0,1], help='use SfM corrected by depth or not')
     arg_parser.add_argument('-o','--outputs', type=Path, default='logs/',
                         help='Path to the output directory, default: %(default)s')
-    arg_parser.add_argument('-expv', '--experiment_version', type=str, default="00_00_00", help='experiment version folder')
+    arg_parser.add_argument('-expv', '--experiment_version', type=str, default="pl2map", help='experiment version folder')
     args, _ = arg_parser.parse_known_args()
     args.outputs = os.path.join(args.outputs, args.scene + "_" + args.experiment_version)
     print("Dataset: {} | Scene: {}".format(args.dataset, args.scene))

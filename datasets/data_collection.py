@@ -31,9 +31,8 @@ class DataCollection(Base_Collection):
     
     def load_all_2Dpoints_by_dataset(self, dataset):
         if dataset == "7scenes":
-            self.gt_3Dmodels_path = self.args.sfm_dir / f"{self.args.dataset}_dslamGT/{self.args.scene}"
             self.load_all_2Dpoints_7scenes()
-        elif dataset == "Cambridge" or dataset == "indoor6_UnDis":
+        elif dataset == "Cambridge" or dataset == "indoor6":
             self.load_all_2Dpoints_Cambridge()
         else:
             raise NotImplemented

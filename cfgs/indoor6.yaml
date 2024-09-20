@@ -31,7 +31,7 @@ regressor:
 
 train: # train configs
   batch_size: 1
-  num_iters: 2500000 # number training iterations
+  num_iters: 1500000 # number training iterations
   loader_shuffle: True
   loader_num_workers: 8
   log_interval: 500 # log every n batches (visdom graph)

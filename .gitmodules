@@ -1,0 +1,6 @@
+[submodule "third_party/DeepLSD"]
+	path = third_party/DeepLSD
+	url = https://github.com/cvg/DeepLSD.git
+[submodule "third_party/pytlsd"]
+	path = third_party/pytlsd
+	url = https://github.com/iago-suarez/pytlsd.git
