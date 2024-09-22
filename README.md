@@ -72,6 +72,6 @@ If you use this code in your project, please consider citing the following paper
 ```
 
 ## Acknowledgement
-This code is built based on [Limap](https://github.com/cvg/limap). We thank the authors for their useful source code.
+This code is built based on [Limap](https://github.com/cvg/limap), and [LineTR](https://github.com/yosungho/LineTR). We thank the authors for their useful source code.
 
 
