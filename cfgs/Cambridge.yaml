@@ -46,8 +46,8 @@ train: # train configs
   augmentation:
     apply: True
     on_rate: 0.5 # probability of applying augmentation
-    brightness: 0.0
-    contrast: 0.0
+    brightness: 0.15
+    contrast: 0.1
     homography:
       apply: False  # if apply, augmented poses will be incorrect
       perspective: True
