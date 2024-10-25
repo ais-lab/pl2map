@@ -8,6 +8,10 @@
 
 ![demo_vid](assets/demo.gif)
 
+Todo list:
+- [x] release code
+- [ ] add to work with custom data
+
 ## Installation
 Python 3.9 + required packages
 ```
@@ -70,7 +74,6 @@ If you use this code in your project, please consider citing the following paper
   year={2024}
 }
 ```
-
 ## Acknowledgement
 This code is built based on [Limap](https://github.com/cvg/limap), and [LineTR](https://github.com/yosungho/LineTR). We thank the authors for their useful source code.
 
