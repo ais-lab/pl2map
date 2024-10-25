@@ -16,6 +16,7 @@ Todo list:
 Python 3.9 + required packages
 ```
 git clone https://github.com/ais-lab/pl2map.git
+cd pl2map
 git submodule update --init --recursive
 conda create --name pl2map python=3.9
 conda activate pl2map
