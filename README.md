@@ -15,8 +15,10 @@ Todo list:
 ## Installation
 Python 3.9 + required packages
 ```
+git clone https://github.com/ais-lab/pl2map.git
 git submodule update --init --recursive
-
+conda create --name pl2map python=3.9
+conda activate pl2map
 # Refer to https://pytorch.org/get-started/previous-versions/ to install pytorch compatible with your CUDA
 python -m pip install torch==1.12.0 torchvision==0.13.0 
 python -m pip install -r requirements.txt
