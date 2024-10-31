@@ -56,7 +56,7 @@ python runners/eval.py --dataset Cambridge --scene KingsCollege -expv pl2map
 
 ## Training
 ```
-python runners/train.py --dataset Cambridge --scene KingsCollege -expv d2s
+python runners/train.py --dataset Cambridge --scene KingsCollege -expv pl2map_test
 ```
 
 ## Supported detectors
