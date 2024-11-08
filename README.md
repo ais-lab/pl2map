@@ -77,7 +77,7 @@ If you use this code in your project, please consider citing the following paper
   year={2024}
 }
 ```
-This code builds on previous camera relocalization pipeline, namely D2S please consider citing:
+This code builds on previous camera relocalization pipeline, namely D2S, please consider citing:
 ```bibtex
 @article{bui2024d2s,
   title={D2S: Representing sparse descriptors and 3D coordinates for camera relocalization},
