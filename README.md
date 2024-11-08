@@ -70,7 +70,7 @@ python runners/train.py --dataset Cambridge --scene KingsCollege -expv pl2map_te
 ## Citation
 If you use this code in your project, please consider citing the following paper:
 ```bibtex
-@article{bui2024representing,
+@article{bui2024pl2map,
   title={Representing 3D sparse map points and lines for camera relocalization},
   author={Bui, Bach-Thuan and Bui, Huy-Hoang and Tran, Dinh-Tuan and Lee, Joo-Ho},
   booktitle={2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
