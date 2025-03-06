@@ -8,7 +8,7 @@ Recent advances in visual localization and mapping integrate point and line feat
 
 ---  
 ## Papers
-**Improved 3D Point-Line Mapping Regression for Camera Relocalization**  
+**Improved 3D Point-Line Mapping Regression for Camera Relocalization**![new](assets/New.png)  
 Bach-Thuan Bui, Huy-Hoang Bui, Yasuyuki Fujii, Dinh-Tuan Tran, and Joo-Ho Lee. 
 arXiv preprint arXiv:2502.20814, 2025.
 [pdf](https://arxiv.org/pdf/2502.20814)  
