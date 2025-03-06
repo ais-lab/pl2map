@@ -1,5 +1,5 @@
-# 3D Sparse Point-Line to Map Regresssion for Camera Relocalization
-### [Project Page](https://thpjp.github.io/pl2map/) | [Paper PL2Map](https://arxiv.org/abs/2402.18011) | [Paper PL2Map++](https://arxiv.org/pdf/2502.20814)
+# Point-Line to Map Regresssion for Camera Relocalization
+#### [Project Page](https://thpjp.github.io/pl2map/) | [PL2Map](https://arxiv.org/abs/2402.18011) | [PL2Map++](https://arxiv.org/pdf/2502.20814)
 ## Introduction
 
 ![demo_vid](assets/demo.gif)
@@ -8,7 +8,7 @@ Recent advances in visual localization and mapping integrate point and line feat
 
 ---  
 ## Papers
-**Improved 3D Point-Line Mapping Regression for Camera Relocalization**
+**Improved 3D Point-Line Mapping Regression for Camera Relocalization**  
 Bach-Thuan Bui, Huy-Hoang Bui, Yasuyuki Fujii, Dinh-Tuan Tran, and Joo-Ho Lee. 
 arXiv preprint arXiv:2502.20814, 2025.
 [pdf](https://arxiv.org/pdf/2502.20814)  
@@ -18,10 +18,6 @@ Bach-Thuan Bui, Huy-Hoang Bui, Dinh-Tuan Tran, and Joo-Ho Lee
 IEEE/RSJ International Conference on Intelligent Robots and Systems (**IROS**), 2024.
 [pdf](https://arxiv.org/abs/2402.18011) &nbsp
 
-
-Todo list:
-- [x] release code
-- [ ] add to work with custom data
 
 ## Installation
 Python 3.9 + required packages
