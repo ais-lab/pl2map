@@ -4,7 +4,7 @@
 
 ![demo_vid](assets/demo.gif)
 
-We introduce a lightweight neural network for visual localization that efficiently represents both 3D points and lines. Specifically, we use a single transformer block to convert line features into distinctive point-like descriptors. These features are then refined through self- and cross-attention in a graph-based framework before 3D map regression using simple MLPs. Our method outperforms [Hloc](https://github.com/cvg/Hierarchical-Localization) and [Limap](https://github.com/cvg/limap) in small-scale indoor localization and achieves the best results in outdoor settings, setting a new benchmark for learning-based approaches.
+We introduce a lightweight neural network for visual localization that efficiently represents both 3D points and lines. Specifically, we use a single transformer block to convert line features into distinctive point-like descriptors. These features are then refined through self- and cross-attention in a graph-based framework before 3D map regression using simple MLPs. Our method outperforms [Hloc](https://github.com/cvg/Hierarchical-Localization) and [Limap](https://github.com/cvg/limap) in small-scale indoor localization and achieves the best results in outdoor settings, setting a new benchmark for learning-based approaches. It also operates in real-time at ~16 FPS, compared to [Limap](https://github.com/cvg/limap)’s ~0.03 FPS, while requiring only lightweight network weights of 33MB instead of [Limap](https://github.com/cvg/limap)’s multi-GB memory footprint.
 
 ---  
 ## Papers
