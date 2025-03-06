@@ -14,7 +14,7 @@ arXiv preprint arXiv:2502.20814, 2025.
 [pdf](https://arxiv.org/pdf/2502.20814)  
 
 **Representing 3D sparse map points and lines for camera relocalization**  
-Bach-Thuan Bui, Huy-Hoang Bui, Dinh-Tuan Tran, and Joo-Ho Lee
+Bach-Thuan Bui, Huy-Hoang Bui, Dinh-Tuan Tran, and Joo-Ho Lee.    
 IEEE/RSJ International Conference on Intelligent Robots and Systems (**IROS**), 2024.
 [pdf](https://arxiv.org/abs/2402.18011) &nbsp
 
