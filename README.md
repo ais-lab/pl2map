@@ -9,7 +9,7 @@ Recent advances in visual localization and mapping integrate point and line feat
 ---  
 ## Papers
 **Improved 3D Point-Line Mapping Regression for Camera Relocalization**![new](assets/New.png)  
-Bach-Thuan Bui, Huy-Hoang Bui, Yasuyuki Fujii, Dinh-Tuan Tran, and Joo-Ho Lee. 
+Bach-Thuan Bui, Huy-Hoang Bui, Yasuyuki Fujii, Dinh-Tuan Tran, and Joo-Ho Lee.   
 arXiv preprint arXiv:2502.20814, 2025.
 [pdf](https://arxiv.org/pdf/2502.20814)  
 
@@ -82,6 +82,12 @@ If you use this code in your project, please consider citing the following paper
   author={Bui, Bach-Thuan and Bui, Huy-Hoang and Tran, Dinh-Tuan and Lee, Joo-Ho},
   booktitle={2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
   year={2024}
+}
+@article{bui2025improved,
+  title={Improved 3D Point-Line Mapping Regression for Camera Relocalization},
+  author={Bui, Bach-Thuan and Bui, Huy-Hoang and Fujii, Yasuyuki and Tran, Dinh-Tuan and Lee, Joo-Ho},
+  journal={arXiv preprint arXiv:2502.20814},
+  year={2025}
 }
 ```
 This code builds on previous camera relocalization pipeline, namely [D2S](https://github.com/ais-lab/d2s), please consider citing:
