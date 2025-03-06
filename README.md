@@ -4,7 +4,7 @@
 
 ![demo_vid](assets/demo.gif)
 
-Recent advances in visual localization and mapping integrate point and line features effectively but at high computational costs. We propose a lightweight neural network that jointly represents 3D points and lines, achieving state-of-the-art pose accuracy with minimal overhead. A single transformer block encodes line features as point-like descriptors, treated as distinct yet interconnected feature sets. Using self- and cross-attention within graph layers, our method refines features before regressing 3D maps via two simple MLPs. Experiments show superior indoor localization over Hloc and Limap and a significant lead in outdoor benchmarks, surpassing learning-based approaches.
+We introduce a lightweight neural network for visual localization that efficiently represents both 3D points and lines. Specifically, we use a single transformer block to convert line features into distinctive point-like descriptors. These features are then refined through self- and cross-attention in a graph-based framework before 3D map regression using simple MLPs. Our method outperforms Hloc and Limap in indoor localization and achieves the best results in outdoor settings, setting a new benchmark for learning-based approaches.
 
 ---  
 ## Papers
