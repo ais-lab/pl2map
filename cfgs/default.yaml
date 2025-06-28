@@ -69,25 +69,6 @@ train: # train configs
       aug_scale_max: 1.5  # 3/2
 
 localization:
-  2d_matcher: "sold2" # ["epipolar", "sold2", "superglue_endpoints"] Other configs for superglue_endpoints are the same as in "line2d" section
-  epipolar_filter: False # No use for epipolar matcher
-  IoU_threshold: 0.2
-  reprojection_filter: null  # [null, "Perpendicular", "Midpoint", "Midpoint_Perpendicular"]
   ransac: 
-    method: "hybrid"    # [null, "ransac", "solver", "hybrid"]
-    thres: 10.0         # Only for normal & solver
-    thres_point: 10.0
-    thres_line: 10.0
-    weight_point: 1.0   # data type weights for scoring
-    weight_line: 1.0    # data type weights for scoring
-    final_least_squares: True
-    min_num_iterations: 100
-    solver_flags: [True, True, True, True]
-  optimize:
-    loss_func: "TrivialLoss"
-    loss_func_args: []
-  line_cost_func: "PerpendicularDist"
-  line_weight: 1.0        # weight for optimization (cost function)
-  hloc:
-    skip_exists: False
-  skip_exists: False
+    max_reproj_error: 12.0 
+    max_epipolar_error: 10.0

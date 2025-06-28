@@ -10,7 +10,7 @@ line2d:
     grayscale: True
 
 point2d:
-  detector: 
+  detector:
     name: "superpoint" # ["superpoint", "sift"]
     configs:
       force_num_keypoints: False
@@ -24,21 +24,21 @@ point2d:
   matcher: "NN-superpoint" # ["superglue", "gluestick"] # not implemented (for unlabeled learning)
 
 regressor: 
-  name: pl2map # ["pl2map", "d2s"]
+  name: pl2map_sep # ["pl2map", "d2s"]
   use_line: True
   use_point: True
   n_line_keypoints: 10 # number of keypoints used to represent a line
 
 train: # train configs
   batch_size: 1
-  num_iters: 1500000 # number training iterations
+  num_iters: 2500000 # number training iterations
   loader_shuffle: True
   loader_num_workers: 8
   log_interval: 500 # log every n batches (visdom graph)
   loss:
     reprojection:
       apply: True
-      start_apply: 0.8 # start applying reprojection loss
+      start_apply: 0.5 # start applying reprojection loss
       type: "dyntanh" # ["l1", "l1+sqrt", "l1+log", "tanh", "dyntanh"]
       soft_clamp: 100
       soft_clamp_min: 1
@@ -67,11 +67,11 @@ train: # train configs
       aug_rotation: 30 # in degrees
       aug_scale_min: 0.666666666 # 2/3
       aug_scale_max: 1.5  # 3/2
-  
+
 
 optimizer:
   method: adam
-  base_lr: 0.0005 # base/start learning rate
+  base_lr: 0.00008 # base/start learning rate
   weight_decay: 0.0
   lr_decay: 0.5 # decay rate
   num_lr_decay_step: 7 # decay every n epochs, 7 

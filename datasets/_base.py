@@ -152,6 +152,7 @@ class Base_Collection():
         do_merge_lines = self.cfg.line2d.do_merge_lines
         visualize = self.cfg.line2d.visualize
         method = self.cfg.line2d.detector.name_test_model
+        # method = "lsd"
         return get_linedetector(method= method, max_num_2d_segs=max_num_2d_segs,
                  do_merge_lines=do_merge_lines, visualize=visualize, cudaid=self.args.cudaid)
     
@@ -281,6 +282,9 @@ class Base_Collection():
         '''
         Return a path to image
         '''
+        if self.args.dataset == "indoor6":
+            img_path = os.path.join(self.args.dataset_dir, self.args.dataset, self.args.scene, 'rgb', image_name)
+            return img_path
         img_path = os.path.join(self.args.dataset_dir, self.args.dataset, self.args.scene, image_name)
         return img_path
         

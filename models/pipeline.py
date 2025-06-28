@@ -27,6 +27,9 @@ class Pipeline(BaseModel):
         line_keypoints = get_line_keypoints(data['lines'], self.conf.regressor.n_line_keypoints)
         # sample descriptors using superpoint
         regressor_data = self.detector((data['image'], data['keypoints'], line_keypoints))
+        if self.training or 'validPoints' in data.keys():
+            regressor_data['validPoints'] = data['validPoints']
+            regressor_data['validLines'] = data['validLines']
         # regress descriptors to 3D points and lines
         pred = self.regressor(regressor_data)
         pred['keypoints'] = regressor_data['keypoints']

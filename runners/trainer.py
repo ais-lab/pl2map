@@ -4,17 +4,19 @@ import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.pipeline import Pipeline
 from datasets.dataloader import Collection_Loader
-from models.util_learner import CriterionPointLine, Optimizer
+from models.util_learner import CriterionPoint, CriterionPointLine, Optimizer
 from tqdm import tqdm
 torch.manual_seed(0)
 
 class Trainer():
     def __init__(self, args, cfg):
         self.args = args
-        print(f"[INFO] Model: {cfg.regressor.name}")
+        print(f"[INFOR] Model: {cfg.regressor.name}")
         self.log_name = str(args.dataset) + "_" + str(args.scene) + "_" + str(cfg.regressor.name)
         self.pipeline = Pipeline(cfg)
-        self.criterion = CriterionPointLine(cfg.train.loss.reprojection, cfg.train.num_iters)
+        self.criterion = CriterionPointLine(cfg.train.loss.reprojection, cfg.train.num_iters)\
+              if 'pl2map' in cfg.regressor.name else CriterionPoint(cfg.train.loss.reprojection,
+                                                                    cfg.train.num_iters)
         self.device = torch.device(f'cuda:{args.cudaid}' if torch.cuda.is_available() else 'cpu')
         
         # to device
@@ -23,14 +25,14 @@ class Trainer():
 
         # dataloader
         train_collection = Collection_Loader(args, cfg, mode="train")
-        print("[INFO] Loaded data collection")
+        print("[INFOR] Loaded data collection")
         self.train_loader = torch.utils.data.DataLoader(train_collection, batch_size=cfg.train.batch_size,
                                                         shuffle=cfg.train.loader_shuffle, num_workers=cfg.train.loader_num_workers, 
                                                         pin_memory=True)
         
         self.length_train_loader = len(self.train_loader)
         self.epochs = int(cfg.train.num_iters / self.length_train_loader)
-        print(f"[INFO] Total epochs: {self.epochs}")
+        print(f"[INFOR] Total epochs: {self.epochs}")
         self.optimizer = Optimizer(self.pipeline.regressor.parameters(), self.epochs, **cfg.optimizer)
         
         if self.args.checkpoint:
@@ -45,7 +47,7 @@ class Trainer():
         
 
     def train(self):
-        print("[INFO] Start training")
+        print("[INFOR] Start training")
         for epoch in range(self.start_epoch, self.epochs):
             if self.train_log.is_save_checkpoint():
                 self.pipeline.save_checkpoint(self.args.outputs, self.log_name, epoch) # overwrite(save) checkpoint per epoch
@@ -95,7 +97,7 @@ class Train_Log():
         self.showloss = ShowLosses(total_epoch=self.total_epoch)
         self.list_fignames = ['total_loss', 'point_loss', 'point_uncer_loss', 
                               'line_loss', 'line_uncer_loss', 'points_prj_loss',
-                                'lines_prj_loss', 'learning_rate']
+                                'lines_prj_loss', 'penalty_linedepth', 'penalty_linelength', 'learning_rate']
         if self.args.visdom:
             from visdom import Visdom
             print("[INFOR] Visdom is used for log visualization")
@@ -149,7 +151,7 @@ class His_Loss():
 
 class ShowLosses():
     # for debugging, showing all losses if needed
-    def __init__(self, list_display=[True, True, False, True, False, True, True], total_epoch=0):
+    def __init__(self, list_display=[True, True, True, True, True, True, True], total_epoch=0):
         '''
         corresponding to show following losses:
         ['total_loss', 'point_loss', 'point_uncer_loss', 

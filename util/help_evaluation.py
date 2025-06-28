@@ -38,20 +38,23 @@ class Vis_Infor():
         args:
             output: dict of model output
             data: dict of data
+            pose_vis_infor: list of camera, est_pose, gt_pose # this is use for line only
         '''
         
         if self.current_num_frames < self.limit_n_frames:
             if self.eval_cfg.vis_line3d:
-                lines3D,_ = getLine3D_from_modeloutput(output['lines3D'], self.threshold_line)
-                self.lines3D = lines3D if self.lines3D is None else np.concatenate((self.lines3D, lines3D))
-                self.list_images.append(data['imgname'][0])
+                lines3D = getLine3D_from_modeloutput(output['lines3D'], self.threshold_line)
+                if lines3D is not None:
+                    if len(lines3D.shape) != 1:
+                        self.lines3D = lines3D if self.lines3D is None else np.concatenate((self.lines3D, lines3D))
+                        self.list_images.append(data['imgname'][0])
                 if vis_pose_infor is not None:
                     self.cameras.append(vis_pose_infor[0])
                     self.prd_poses.append(vis_pose_infor[1])
                     self.gt_poses.append(vis_pose_infor[2])
             
             if self.eval_cfg.vis_point3d:
-                points3D,_ = getPoint3D_from_modeloutput(output['points3D'], self.threshold_point)
+                points3D = getPoint3D_from_modeloutput(output['points3D'], self.threshold_point)
                 self.points3D = points3D if self.points3D is None else np.concatenate((self.points3D, points3D))
                 self.list_images.append(data['imgname'][0])
                 
@@ -72,7 +75,6 @@ class Vis_Infor():
         if self.eval_cfg.vis_line3d:
             print("[INFOR] Visualizing predicted 3D lines ...")
             from util.visualize import open3d_vis_3d_lines
-            # open3d_vis_3d_lines(self.lines3D)
             open3d_vis_3d_lines(self.lines3D, self.cameras, self.prd_poses, self.gt_poses)
         if self.eval_cfg.vis_point3d:
             print("[INFOR] Visualizing predicted 3D points ...")
@@ -99,12 +101,14 @@ def getLine3D_from_modeloutput(lines3D, threshold=0.5):
         lines3D: numpy array (1, 7, N)
     return: lines3D (N, 6)
     '''
+    if lines3D is None:
+        return None
     lines3D = np.squeeze(lines3D.detach().cpu().numpy())
-    uncertainty = 1/(1+100*np.abs(lines3D[6,:]))
-    lines3D = lines3D[:6,:]
-    uncertainty = [True if tmpc >= threshold else False for tmpc in uncertainty]
-    lines3D = lines3D.T[uncertainty,:]
-    return lines3D, uncertainty
+    # uncertainty = 1/(1+100*np.abs(lines3D[6,:]))
+    # lines3D = lines3D[:6,:]
+    # uncertainty = [True if tmpc >= threshold else False for tmpc in uncertainty]
+    # lines3D = lines3D.T[uncertainty,:]
+    return lines3D.T #, uncertainty
 
 def getPoint3D_from_modeloutput(points3D, threshold=0.5):
     '''
@@ -114,11 +118,11 @@ def getPoint3D_from_modeloutput(points3D, threshold=0.5):
     return: points3D (N, 3)
     '''
     points3D = np.squeeze(points3D.detach().cpu().numpy())
-    uncertainty = 1/(1+100*np.abs(points3D[3,:]))
-    points3D = points3D[:3,:]
-    uncertainty = [True if tmpc >= threshold else False for tmpc in uncertainty]
-    points3D = points3D.T[uncertainty,:]
-    return points3D, uncertainty
+    # uncertainty = 1/(1+100*np.abs(points3D[3,:]))
+    # points3D = points3D[:3,:]
+    # uncertainty = [True if tmpc >= threshold else False for tmpc in uncertainty]
+    # points3D = points3D.T[uncertainty,:]
+    return points3D.T #, uncertainty
 
 def pose_evaluator(eval_cfg, spath):
     '''
@@ -132,6 +136,8 @@ def pose_evaluator(eval_cfg, spath):
             evaluate_pose_results(spath, mode=mode, pnp='point')
         if eval_cfg.pnp_pointline:
             evaluate_pose_results(spath, mode=mode, pnp='pointline')
+        if eval_cfg.pnp_line:
+            evaluate_pose_results(spath, mode=mode, pnp='line')
             
     if eval_cfg.eval_train:
         mode = 'train'
@@ -155,7 +161,13 @@ def evaluate_pose_results(spath, mode='train', pnp='pointline'):
     # assert len(gt) == len(prd)
     errors_t = []
     errors_R = []
+    num_inliers = []
+    num_points = []
+    num_extracted_points = []
     for i in range(len(prd)):
+        num_inliers.append(prd.iloc[i,9])
+        num_points.append(prd.iloc[i,10])
+        num_extracted_points.append(prd.iloc[i,11])
         R_gt = qvec2rotmat(gt.iloc[i,3:7].to_numpy())
         t_gt = gt.iloc[i,:3].to_numpy()
         t = prd.iloc[i,:3].to_numpy()
@@ -172,9 +184,11 @@ def evaluate_pose_results(spath, mode='train', pnp='pointline'):
     print(f'Evaluation results on {mode} set ({len(gt)}imgs) & PnP {pnp}:')
     print('Median errors: {:.4f}m, {:.4f}deg'.format(med_t, med_R))
     print('Average PnP time: {:.4f}s'.format(np.mean(prd.iloc[:,7].to_numpy())))
+    print('Average extracted/fine_points/inliers: {:.1f}/{:.1f}/{:.1f}'.format(np.mean(num_extracted_points),
+                                                                        np.mean(num_points), np.mean(num_inliers)))
     print('Percentage of test images localized within:')
-    threshs_t = [0.01, 0.02, 0.03, 0.05, 0.10]
-    threshs_R = [1.0, 2.0, 3.0, 5.0, 10.0]
+    threshs_t = [0.01, 0.02, 0.03, 0.05, 0.10, 0.5]
+    threshs_R = [1.0, 2.0, 3.0, 5.0, 10.0, 10]
     for th_t, th_R in zip(threshs_t, threshs_R):
         ratio = np.mean((errors_t < th_t) & (errors_R < th_R))
         print('\t{:.0f}cm, {:.0f}deg : {:.2f}%'.format(th_t*100, th_R, ratio*100))

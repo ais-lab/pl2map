@@ -32,8 +32,7 @@ def main():
         "vis_line3d": False, # visualize predicted 3D lines, if eval_train/test = True
         "pnp_point": True, # use point-mode-only for PnP
         "pnp_pointline": True, # use point+line mode for PnP
-        "uncer_threshold_point": 0.5, # threshold to remove uncertain points
-        "uncer_threshold_line": 0.02, # threshold to remove uncertain lines
+        "pnp_line": False, # use line-mode-only for PnP
         "exist_results":False, # if True, skip running model,then use the existing results in the outputs folder
         "save_3dmap": False, # save predicted 3D map
     }
@@ -41,7 +40,7 @@ def main():
     sys.stdout = DualLogger(f'{args.outputs}/eval_log.txt')
     evaler = Evaluator(args, cfg, eval_cfg)
     evaler.eval()
-    sys.stdout.log.close()
+    sys.stdout.log.close() 
 
 if __name__ == "__main__":
     main()

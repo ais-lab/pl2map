@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import torch
-from third_party.DeepLSD.deeplsd.models.deeplsd_inference import DeepLSD
+from deeplsd.models.deeplsd_inference import DeepLSD
 from ..linebase_detector import LineBaseDetector, BaseDetectorOptions
 
 class DeepLSDDetector(LineBaseDetector):

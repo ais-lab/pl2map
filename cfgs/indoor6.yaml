@@ -24,14 +24,14 @@ point2d:
   matcher: "NN-superpoint" # ["superglue", "gluestick"] # not implemented (for unlabeled learning)
 
 regressor: 
-  name: pl2map # pl2map_only_point or pl2map_sep
+  name: pl2map_sep # pl2map_only_point or pl2map_sep
   use_line: True
   use_point: True
   n_line_keypoints: 10 # number of keypoints used to represent a line
 
 train: # train configs
   batch_size: 1
-  num_iters: 1500000 # number training iterations
+  num_iters: 2500000 # number training iterations
   loader_shuffle: True
   loader_num_workers: 8
   log_interval: 500 # log every n batches (visdom graph)

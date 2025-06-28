@@ -15,15 +15,16 @@ class Pose_Estimator():
         self.uncertainty_line = eval_cfg.uncer_threshold_line
         self.pnppoint = eval_cfg.pnp_point
         self.pnppointline = eval_cfg.pnp_pointline
+        self.pnpline = eval_cfg.pnp_line
         if not self.eval_cfg.exist_results:
             self.checkexist()
     def checkexist(self):
         ''' 
         Check if the files exist, if yes, remove them
         '''
-        trainfiles_list = ['est_poses_train_pointline.txt', 'est_poses_train_point.txt',
+        trainfiles_list = ['est_poses_train_pointline.txt', 'est_poses_train_point.txt', 'est_poses_train_line.txt',
                        'gt_poses_train.txt']
-        testfiles_list = ['est_poses_test_pointline.txt', 'est_poses_test_point.txt',
+        testfiles_list = ['est_poses_test_pointline.txt', 'est_poses_test_point.txt', 'est_poses_test_line.txt',
                        'gt_poses_test.txt']
         if self.eval_cfg.eval_train:
             self.rmfiles(trainfiles_list)
@@ -38,16 +39,18 @@ class Pose_Estimator():
     def run(self, output, data, target, mode='train'):
         return camera_pose_estimation(self.localize_cfg, output, data, target, self.spath, mode=mode,
                      uncertainty_point=self.uncertainty_point, uncertainty_line=self.uncertainty_line,
-                     pnppoint=self.pnppoint, pnppointline=self.pnppointline)
+                     pnppoint=self.pnppoint, pnppointline=self.pnppointline, pnpline=self.pnpline) 
 
 def camera_pose_estimation(localize_cfg, output, data, target, spath, mode='train', 
-                           uncertainty_point=0.5, uncertainty_line=0.5, pnppoint=False, pnppointline=True):
+                           uncertainty_point=0.5, uncertainty_line=0.5, pnppoint=False, pnppointline=True, pnpline=False):
     '''
     Creating same inputs for limap library and estimate camera pose
     '''
-    p3ds_, point_uncer = getPoint3D_from_modeloutput(output['points3D'], uncertainty_point)
+    p3ds_ = getPoint3D_from_modeloutput(output['points3D'], uncertainty_point)
     p3ds = [i for i in p3ds_]
     p2ds = output['keypoints'][0].detach().cpu().numpy() + 0.5 # COLMAP
+    num_extracted_points = len(p2ds)
+    point_uncer = output['prd_mask_points'][0].detach().cpu().numpy()
     p2ds = p2ds[point_uncer,:]
     p2ds = [i for i in p2ds]
     camera = target['camera'][0].detach().cpu().numpy()
@@ -57,10 +60,12 @@ def camera_pose_estimation(localize_cfg, output, data, target, spath, mode='trai
     
     if pnppoint:
         start = time.time()
-        pose_point, _ = poselib.estimate_absolute_pose(p2ds, p3ds, poselibcamera, {'max_reproj_error': 12.0}, {})
+        pose_point, info = poselib.estimate_absolute_pose(p2ds, p3ds, poselibcamera, {'max_reproj_error': 12.0}, {})
         est_time = time.time() - start
+        num_inliers = info['num_inliers']
+        num_points = len(info['inliers'])
         with open(os.path.join(spath, f"est_poses_{mode}_point.txt"), 'a') as f:
-            f.write(f"{pose_point.t[0]} {pose_point.t[1]} {pose_point.t[2]} {pose_point.q[0]} {pose_point.q[1]} {pose_point.q[2]} {pose_point.q[3]} {est_time} {image_name}\n")
+            f.write(f"{pose_point.t[0]} {pose_point.t[1]} {pose_point.t[2]} {pose_point.q[0]} {pose_point.q[1]} {pose_point.q[2]} {pose_point.q[3]} {est_time} {image_name} {num_inliers} {num_points} {num_extracted_points}\n")
     target_pose = target['pose'][0].detach().cpu().numpy()
     with open(os.path.join(spath, f"gt_poses_{mode}.txt"), 'a') as f:
         f.write(f"{target_pose[0]} {target_pose[1]} {target_pose[2]} {target_pose[3]} {target_pose[4]} {target_pose[5]} {target_pose[6]}\n")
@@ -69,22 +74,39 @@ def camera_pose_estimation(localize_cfg, output, data, target, spath, mode='trai
     # modify the limap pnp to poselib pnp 
     
     
-    l3ds, line_uncer = getLine3D_from_modeloutput(output['lines3D'], uncertainty_line)
-    l3d_ids = [i for i in range(len(l3ds))]
+    l3ds = getLine3D_from_modeloutput(output['lines3D'], uncertainty_line)
+    line_uncer = output['prd_mask_lines'][0].detach().cpu().numpy()
     l2ds = data['lines'][0].detach().cpu().numpy()
+    num_extracted_lines = len(l2ds)
     l2ds = l2ds[line_uncer,:]
-    
+    length_line = len(l2ds)
     localize_cfg = OmegaConf.to_container(localize_cfg, resolve=True)
     
     if pnppointline:
+        start = time.time()
+        ransac_opt = {"max_reproj_error": 12.0, "max_epipolar_error": 10.0}
+        l2d_1 = [i for i in l2ds[:,:2]] if length_line > 1 else []
+        l2d_2 = [i for i in l2ds[:,2:]] if length_line > 1 else []
+        l3d_1 = [i for i in l3ds[:,:3]] if length_line > 1 else []
+        l3d_2 = [i for i in l3ds[:,3:]] if length_line > 1 else []
+        pose_pl, info = poselib.estimate_absolute_pose_pnpl(p2ds, p3ds, l2d_1, l2d_2, l3d_1, l3d_2, poselibcamera, ransac_opt)
+        est_time = time.time() - start
+        num_inliers = info['num_inliers']
+        num_lines = len(info['inliers'])
+        with open(os.path.join(spath, f"est_poses_{mode}_pointline.txt"), 'a') as f:
+            f.write(f"{pose_pl.t[0]} {pose_pl.t[1]} {pose_pl.t[2]} {pose_pl.q[0]} {pose_pl.q[1]} {pose_pl.q[2]} {pose_pl.q[3]} {est_time} {image_name} {num_inliers} {num_lines} {num_extracted_lines} \n")
+    
+    if pnpline:
         start = time.time()
         ransac_opt = {"max_reproj_error": 12.0, "max_epipolar_error": 10.0}
         l2d_1 = [i for i in l2ds[:,:2]]
         l2d_2 = [i for i in l2ds[:,2:]]
         l3d_1 = [i for i in l3ds[:,:3]]
         l3d_2 = [i for i in l3ds[:,3:]]
-        pose, _ = poselib.estimate_absolute_pose_pnpl(p2ds, p3ds, l2d_1, l2d_2, l3d_1, l3d_2, poselibcamera, ransac_opt)
+        pose, _ = poselib.estimate_absolute_pose_pnpl([], [], l2d_1, l2d_2, l3d_1, l3d_2, poselibcamera, ransac_opt)
         est_time = time.time() - start
-        with open(os.path.join(spath, f"est_poses_{mode}_pointline.txt"), 'a') as f:
+        with open(os.path.join(spath, f"est_poses_{mode}_line.txt"), 'a') as f:
             f.write(f"{pose.t[0]} {pose.t[1]} {pose.t[2]} {pose.q[0]} {pose.q[1]} {pose.q[2]} {pose.q[3]} {est_time} {image_name}\n")
-        return [poselibcamera, np.array([pose.t[0], pose.t[1], pose.t[2], pose.q[0], pose.q[1], pose.q[2], pose.q[3]]), target_pose]
+    
+    if pnppointline:
+        return [poselibcamera, np.array([pose_pl.t[0], pose_pl.t[1], pose_pl.t[2], pose_pl.q[0], pose_pl.q[1], pose_pl.q[2], pose_pl.q[3]]), target_pose]

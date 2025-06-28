@@ -18,7 +18,10 @@ class Collection_Loader(Dataset):
             self.image_list = self.DataCol.test_imgs
         else:
             raise ValueError("Error! Mode {0} not supported.".format(mode))
-
+        # # sort image_list
+        # self.image_list = sorted(self.image_list)
+        # # create new image_list with uniform sample of only 30 images 
+        # self.image_list = self.image_list[::int(len(self.image_list)/30)]
     def __len__(self):
         return len(self.image_list)
 
@@ -26,6 +29,11 @@ class Collection_Loader(Dataset):
         image_name = self.image_list[index]
         data, infor = self.DataCol.image_loader(image_name, augmentation=self.augmentation) # dict:{img, ori_img_size}
         target = {}
+        if 'train' in self.mode:
+            if sum(infor.validPoints) == 0:
+                index = 0 
+                image_name = self.image_list[index]
+                data, infor = self.DataCol.image_loader(image_name, augmentation=self.augmentation)
         if self.mode == "test":
             data['lines'] = self.DataCol.detect_lines2D(image_name)[:,:4] # detect lines2D
             data['keypoints'] = 'None' # to show there is no keypoints
@@ -36,6 +44,9 @@ class Collection_Loader(Dataset):
             target['points3D'] = infor.points3Ds.T
             target['validPoints'] = infor.validPoints
             target['validLines'] = infor.validLines
+            
+            data['validPoints'] = infor.validPoints
+            data['validLines'] = infor.validLines
             assert data['lines'].shape[0] == target['lines3D'].shape[1] == target['validLines'].shape[0]
             assert data['keypoints'].shape[0] == target['points3D'].shape[1] == target['validPoints'].shape[0]
         target['pose'] = infor.pose.get_pose_vector()

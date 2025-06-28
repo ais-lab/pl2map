@@ -97,11 +97,11 @@ def open3d_vis_3d_lines(lines3D, cameras=None, poses=None, gt_pose=None, width=2
 
     vis = o3d.visualization.Visualizer()
     vis.create_window(height=1080, width=1920)
-    
     prune = len(lines)
     # prune = int(0.8*len(lines))
     line_set = open3d_get_line_set(lines[:prune,:], width=width, ranges=ranges, scale=scale)
-
+    o3d.io.write_line_set("visualization/line_set.ply", line_set)
+    # return
     vis.add_geometry(line_set)
     if poses is not None:
         assert cameras is not None
@@ -134,6 +134,7 @@ def open3d_vis_3d_lines(lines3D, cameras=None, poses=None, gt_pose=None, width=2
         for pose, camera in zip(gt_pose, cameras):
             if is_draws[i]: add_camera(vis, pose, camera, scale=0.2, gt = True)
             i+=1
+    
     vis.run()
     vis.destroy_window()
 
@@ -297,6 +298,8 @@ def open3d_vis_3d_points(points3D:np.asanyarray, width=2, ranges=None, scale=1.0
     vis = o3d.visualization.Visualizer()
     vis.create_window(height=1080, width=1920)
     point_set = open3d_get_point_set(points3D, width=width, scale=scale)
+    o3d.io.write_point_cloud("visualization/point_set.ply", point_set)
+    # return
     vis.add_geometry(point_set)
     vis.run()
     vis.destroy_window()

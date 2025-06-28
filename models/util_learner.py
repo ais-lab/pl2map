@@ -1,6 +1,7 @@
 import torch.nn as nn 
 import torch.optim as optim
 import torch 
+import torch.nn.functional as F
 
 class CriterionPointLine(nn.Module):
     '''
@@ -16,16 +17,31 @@ class CriterionPointLine(nn.Module):
         
     def forward(self, pred, target, iteration=2000000):
         batch_size, _, _ = pred['points3D'].shape
+        assert batch_size == 1, "batch size must be 1"
         validPoints = target["validPoints"]
-        validLines = target["validLines"]
+        
         # get losses for points 
-        square_errors_points = torch.norm((pred['points3D'][:,:3,:] - target["points3D"]), dim = 1)
-        loss_points = torch.sum(validPoints*square_errors_points)/batch_size
-        uncer_loss_points = torch.sum(torch.norm(validPoints - 1/(1+100*torch.abs(pred['points3D'][:,3,:])), dim = 1))/batch_size
+        valid_p_bool = validPoints.squeeze()>0
+        target_point = target["points3D"][:,:, valid_p_bool]
+        square_errors_points = torch.norm((pred['points3D'] - target_point), dim = 1)
+        loss_points = torch.sum(square_errors_points)/batch_size
+        # uncer_loss_points = torch.sum(torch.binary_cross_entropy_with_logits(validPoints, pred['prd_mask_points']))/batch_size 
+        uncer_loss_points = F.binary_cross_entropy(torch.sigmoid(pred['prd_mask_points_coarse'][:,0,:]), validPoints, reduction='mean')
+        # uncer_loss_points = torch.sum(torch.norm(validPoints - 1/(1+100*torch.abs(pred['prd_mask_points'][:,1,:])), dim = 1))/batch_size
+        
         # get losses for lines
-        square_errors_lines = torch.norm((pred['lines3D'][:,:6,:] - target["lines3D"]), dim = 1)
-        loss_lines = torch.sum(validLines*square_errors_lines)/batch_size
-        uncer_loss_lines = torch.sum(torch.norm(validLines - 1/(1+100*torch.abs(pred['lines3D'][:,6,:])), dim = 1))/batch_size
+        if 'lines3D' in pred.keys():
+            validLines = target["validLines"]
+            valid_l_bool = validLines.squeeze()>0
+            target_line = target["lines3D"][:,:,valid_l_bool>0]
+            square_errors_lines = torch.norm((pred['lines3D'][:,:6,:] - target_line), dim = 1)
+            loss_lines = torch.sum(square_errors_lines)/batch_size
+            # uncer_loss_lines = torch.sum(torch.norm(validLines - 1/(1+100*torch.abs(pred['lines3D'][:,6,:])), dim = 1))/batch_size
+            # uncer_loss_lines = torch.sum(torch.binary_cross_entropy_with_logits(validLines, pred['prd_mask_lines']))/batch_size
+            uncer_loss_lines = F.binary_cross_entropy(torch.sigmoid(pred['prd_mask_lines_coarse'][:,0,:]), validLines, reduction='mean')
+        else:
+            loss_lines = 0
+            uncer_loss_lines = 0 
         
         points_proj_loss = 0
         lines_proj_loss = 0
@@ -33,25 +49,68 @@ class CriterionPointLine(nn.Module):
         if self.rpj_cfg.apply:
             # get projection losses for points
             for i in range(batch_size): # default batch_size = 1
-                prp_error, prp= project_loss_points(pred['keypoints'][i,:,:], pred['points3D'][i,:3,:], 
-                                    target['pose'][i,:], target['camera'][i,:], validPoints[i,:])
-                points_proj_loss += self.reprojection_loss.compute_point(prp_error, prp, iteration, validPoints[i,:])
+                prp_error, prp= project_loss_points(pred['keypoints'][i,valid_p_bool,:], pred['points3D'][i,:,:], 
+                                    target['pose'][i,:], target['camera'][i,:])
+                points_proj_loss += self.reprojection_loss.compute_point(prp_error, prp, iteration)
             points_proj_loss = points_proj_loss / batch_size
             # get projection losses for lines
-            
-            for i in range(batch_size):
-                prl_error, prp_s, prp_e = project_loss_lines(pred['lines'][i,:,:], pred['lines3D'][i,:6,:], 
-                                    target['pose'][i,:], target['camera'][i,:], validLines[i,:])
-                lines_proj_loss += self.reprojection_loss.compute_line(prl_error, prp_s, prp_e, iteration, validLines[i,:])
-            lines_proj_loss = lines_proj_loss / batch_size
+            if 'lines3D' in pred.keys():
+                for i in range(batch_size):
+                    prl_error, prp_s, prp_e = project_loss_lines(pred['lines'][i,valid_l_bool,:], pred['lines3D'][i,:,:], 
+                                        target['pose'][i,:], target['camera'][i,:])
+                    lines_proj_loss += self.reprojection_loss.compute_line(prl_error, prp_s, prp_e, iteration)
+                lines_proj_loss = lines_proj_loss / batch_size
+                
         if iteration/self.total_iterations < self.rpj_cfg.start_apply:
             total_loss = loss_points + uncer_loss_points + loss_lines + uncer_loss_lines
         else:
             total_loss = loss_points + uncer_loss_points + loss_lines + uncer_loss_lines + points_proj_loss + lines_proj_loss
         
+        # total_loss = loss_points + uncer_loss_points
+        
         points_proj_loss = self.zero if (isinstance(points_proj_loss, int) or isinstance(points_proj_loss, float)) else points_proj_loss
         lines_proj_loss = self.zero if (isinstance(lines_proj_loss, int) or isinstance(lines_proj_loss, float)) else lines_proj_loss
-        return total_loss, loss_points, uncer_loss_points, loss_lines, uncer_loss_lines, points_proj_loss, lines_proj_loss
+        loss_lines = self.zero if (isinstance(loss_lines, int) or isinstance(loss_lines, float)) else loss_lines
+        uncer_loss_lines = self.zero if (isinstance(uncer_loss_lines, int) or isinstance(uncer_loss_lines, float)) else uncer_loss_lines
+        penalty_line_depth = self.zero
+        penalty_linelength = self.zero
+        return total_loss, loss_points, uncer_loss_points, loss_lines, uncer_loss_lines, points_proj_loss, lines_proj_loss, \
+            penalty_line_depth, penalty_linelength
+
+
+class CriterionPoint(nn.Module):
+    '''
+    # original implementation from https://arxiv.org/abs/2307.15250
+    Criterion for point only'''
+    def __init__(self, rpj_cfg, total_iterations=2000000):
+        super(CriterionPoint, self).__init__()
+        self.rpj_cfg = rpj_cfg
+        self.reprojection_loss = ReproLoss(total_iterations, self.rpj_cfg.soft_clamp, 
+                                            self.rpj_cfg.soft_clamp_min, self.rpj_cfg.type, 
+                                            self.rpj_cfg.circle_schedule)
+        self.zero = fakezero()
+    def forward(self, pred, target, iteration=2000000):
+        batch_size, _, _ = pred['points3D'].shape
+        validPoints = target["validPoints"]
+        # get losses for points 
+        square_errors_points = torch.norm((pred['points3D'][:,:3,:] - target["points3D"]), dim = 1)
+        loss_points = torch.sum(validPoints*square_errors_points)/batch_size
+        uncer_loss_points = torch.sum(torch.norm(validPoints - 1/(1+100*torch.abs(pred['points3D'][:,3,:])), dim = 1))/batch_size
+        
+        # get projection losses for points
+        points_proj_loss = 0
+        
+        if self.rpj_cfg.apply:
+            # get projection losses for points
+            for i in range(batch_size): # default batch_size = 1
+                prp_error, prp= project_loss_points(pred['keypoints'][i,:,:], pred['points3D'][i,:3,:], 
+                                    target['pose'][i,:], target['camera'][i,:], validPoints[i,:])
+                points_proj_loss += self.reprojection_loss.compute_point(prp_error, prp, iteration)
+            points_proj_loss = points_proj_loss / batch_size
+        
+        total_loss = loss_points + uncer_loss_points + points_proj_loss
+        points_proj_loss = self.zero if (isinstance(points_proj_loss, int) or isinstance(points_proj_loss, float)) else points_proj_loss
+        return total_loss, loss_points, uncer_loss_points, self.zero, self.zero, points_proj_loss, self.zero
     
 
 class fakezero(object):
@@ -73,7 +132,7 @@ def qvec2rotmat(qvec):
          2 * qvec[2] * qvec[3] + 2 * qvec[0] * qvec[1],
          1 - 2 * qvec[1]**2 - 2 * qvec[2]**2]])
 
-def project_loss_points(gt_pt2Ds, pt3Ds, c_pose, camera, valids):
+def project_loss_points(gt_pt2Ds, pt3Ds, c_pose, camera):
     '''
     gt_pt2Ds: 2xN
     pt3Ds: 3xN
@@ -104,7 +163,7 @@ def project_loss_points(gt_pt2Ds, pt3Ds, c_pose, camera, valids):
     # return torch.mean(valids * torch.sqrt(errors_x + errors_y))
     return torch.sqrt(errors_x + errors_y), prd_2Ds # l2 distance error, and projected 2D points
 
-def project_loss_lines(gt_line2Ds, line3Ds, c_pose, camera, valids):
+def project_loss_lines(gt_line2Ds, line3Ds, c_pose, camera):
     '''
     gt_line2Ds: 4xN
     line3Ds: 6xN
@@ -191,7 +250,7 @@ class ReproLoss:
         self.type = type
         self.circle_schedule = circle_schedule
 
-    def compute_point(self, reprojection_error_b1, pred_cam_coords_b31, iteration, valids):
+    def compute_point(self, reprojection_error_b1, pred_cam_coords_b31, iteration):
         
         # Predicted coordinates behind or close to camera plane.
         invalid_min_depth_b1 = pred_cam_coords_b31[2, :] < 0.1 # 0.1 is the min depth
@@ -199,9 +258,9 @@ class ReproLoss:
         invalid_repro_b1 = reprojection_error_b1 > 1000 # repro_loss_hard_clamp
         # Predicted coordinates beyond max distance.
         invalid_max_depth_b1 = pred_cam_coords_b31[2, :] > 1000 # 1000 is the max depth
-        valids = valids.bool()
+        # valids = valids.bool()
         # Invalid mask is the union of all these. Valid mask is the opposite.
-        invalid_mask_b1 = (valids | invalid_min_depth_b1 | invalid_repro_b1 | invalid_max_depth_b1)
+        invalid_mask_b1 = (invalid_min_depth_b1 | invalid_repro_b1 | invalid_max_depth_b1)
         valid_mask_b1 = ~invalid_mask_b1
 
         # Reprojection error for all valid scene coordinates.
@@ -209,7 +268,7 @@ class ReproLoss:
         return self.final_compute(repro_errs_b1N, iteration)
 
     def compute_line(self, reprojection_error_b1, pred_cam_coords_b31_1,
-                     pred_cam_coords_b31_2, iteration, valids):
+                     pred_cam_coords_b31_2, iteration):
         # Predicted coordinates behind or close to camera plane.
         invalid_min_depth_b1_1 = pred_cam_coords_b31_1[2, :] < 0.1 # 0.1 is the min depth
         invalid_min_depth_b1_2 = pred_cam_coords_b31_2[2, :] < 0.1 # 0.1 is the min depth
@@ -218,9 +277,9 @@ class ReproLoss:
         # Predicted coordinates beyond max distance.
         invalid_max_depth_b1_1 = pred_cam_coords_b31_1[2, :] > 1000 # 1000 is the max depth
         invalid_max_depth_b1_2 = pred_cam_coords_b31_2[2, :] > 1000 # 1000 is the max depth
-        valids = valids.bool()
+        # valids = valids.bool()
         # Invalid mask is the union of all these. Valid mask is the opposite.
-        invalid_mask_b1 = (valids | invalid_min_depth_b1_1 | invalid_repro_b1 | invalid_max_depth_b1_1
+        invalid_mask_b1 = (invalid_min_depth_b1_1 | invalid_repro_b1 | invalid_max_depth_b1_1
                            | invalid_min_depth_b1_2 | invalid_max_depth_b1_2)
         valid_mask_b1 = ~invalid_mask_b1
 
@@ -311,4 +370,3 @@ class Optimizer:
                 param_group['lr'] = self.lr
         return self.lr
     
-

@@ -1,4 +1,4 @@
-# Point-Line to Map Regresssion for Camera Relocalization (Code for PL2Map++ is coming soon)
+# Point-Line to Map Regresssion for Camera Relocalization (Code for PL2Map++)
 #### [Project Page](https://thpjp.github.io/pl2map/) | [PL2Map](https://arxiv.org/abs/2402.18011) | [PL2Map++](https://arxiv.org/pdf/2502.20814)
 ## Introduction
 
@@ -10,7 +10,7 @@ Recent advances in visual localization and mapping integrate point and line feat
 ## Papers
 **Improved 3D Point-Line Mapping Regression for Camera Relocalization**  
 Bach-Thuan Bui, Huy-Hoang Bui, Yasuyuki Fujii, Dinh-Tuan Tran, and Joo-Ho Lee. 
-arXiv preprint arXiv:2502.20814, 2025.
+IEEE/RSJ International Conference on Intelligent Robots and Systems (**IROS**), 2025.
 [pdf](https://arxiv.org/pdf/2502.20814)  
 
 **Representing 3D sparse map points and lines for camera relocalization**  
