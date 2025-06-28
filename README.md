@@ -10,7 +10,7 @@ We introduce a lightweight neural network for visual localization that efficient
 ## Papers
 **Improved 3D Point-Line Mapping Regression for Camera Relocalization**![new](assets/New.png)  
 Bach-Thuan Bui, Huy-Hoang Bui, Yasuyuki Fujii, Dinh-Tuan Tran, and Joo-Ho Lee.   
-arXiv preprint arXiv:2502.20814, 2025.
+IEEE/RSJ International Conference on Intelligent Robots and Systems (**IROS**), 2025.
 [pdf](https://arxiv.org/pdf/2502.20814)  
 
 **Representing 3D sparse map points and lines for camera relocalization**  
