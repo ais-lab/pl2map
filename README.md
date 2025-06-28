@@ -1,5 +1,5 @@
 # Point-Line to Map Regresssion for Camera Relocalization
-#### [Project Page](https://thpjp.github.io/pl2map/) | [PL2Map](https://arxiv.org/abs/2402.18011) | [PL2Map++](https://arxiv.org/pdf/2502.20814)(Code for PL2Map++ is coming soon)
+#### [Project Page](https://thpjp.github.io/pl2map/) | [PL2Map](https://arxiv.org/abs/2402.18011) | [PL2Map++](https://arxiv.org/pdf/2502.20814)
 ## Introduction
 
 ![demo_vid](assets/demo.gif)
